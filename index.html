@@ -357,6 +357,28 @@ input[type=range]::-moz-range-thumb{
 .review-row-top .txt{flex:1;color:var(--text-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .review-row-top .edit-toggle{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;}
 .review-row-top .edit-toggle:hover{color:var(--text-hi);}
+.break-badge{
+  margin:7px 0 0 86px;color:var(--gold);font-family:'Space Mono',monospace;
+  font-size:10.5px;line-height:1.4;
+}
+.break-editor{
+  display:flex;align-items:flex-end;flex-wrap:wrap;gap:5px;margin-top:10px;
+  padding:9px;background:#171229;border:1px solid #3a2b54;border-radius:8px;
+}
+.break-editor .break-field{display:flex;flex-direction:column;gap:3px;}
+.break-editor .break-field label{font-size:9.5px;color:var(--text-dim);font-family:'Space Mono',monospace;}
+.break-editor .bracket{color:var(--gold);font-family:'Space Mono',monospace;padding-bottom:6px;}
+.break-editor .break-remove{
+  border:0;background:transparent;color:var(--text-dim);cursor:pointer;font-size:15px;
+  padding:4px 5px;margin-left:auto;
+}
+.break-editor .break-remove:hover{color:var(--danger);}
+.add-break{
+  width:24px;height:24px;border:1px dashed #514167;background:transparent;color:var(--gold);
+  border-radius:6px;padding:0;font:700 12px 'Space Mono',monospace;cursor:pointer;flex-shrink:0;
+}
+.add-break:hover{border-color:var(--gold);background:#ffce5410;}
+.sync-preview .break-marker{color:var(--gold);font-family:'Space Mono',monospace;font-size:12px;opacity:.85;}
 .word-edit{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
 .word-edit .we{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .word-edit .we span{font-size:10px;color:var(--text-dim);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -626,7 +648,7 @@ input[type=range]::-moz-range-thumb{
 Cantando essa canção
 Palavra por palavra
 Direto do coração</textarea>
-          <div class="hint">Depois de colar ou editar, use a aba <b style="color:var(--text-mid)">Sincronizar</b> para gravar o tempo de cada palavra.</div>
+          <div class="hint">Depois de sincronizar, refine pausas instrumentais em <b style="color:var(--text-mid)">Revisar e ajustar</b>. O formato <b style="color:var(--gold);font-family:'Space Mono',monospace">[00:00.90]§[00:20]</b> define o fim exato da última palavra e 20 segundos de pausa.</div>
         </div>
         <div class="field">
           <div class="btn-row">
@@ -640,7 +662,7 @@ Direto do coração</textarea>
         <div class="field">
           <div class="field-label">Exportar</div>
           <button class="btn btn-ghost btn-block" id="exportLrcBtn">⬇ Baixar .lrc (palavra a palavra)</button>
-          <div class="hint">Exporta no formato Enhanced LRC — compatível com a maioria dos apps de karaokê. Se houver palavras sem tempo, elas são estimadas automaticamente antes de exportar.</div>
+          <div class="hint">Exporta no formato Enhanced LRC — compatível com a maioria dos apps de karaokê. Se houver palavras sem tempo, elas são estimadas automaticamente; os marcadores § são preservados.</div>
         </div>
       </div>
 
@@ -699,6 +721,7 @@ Direto do coração</textarea>
         <div class="field" style="margin-top:22px;">
           <div class="field-label">Revisar e ajustar</div>
           <div class="review-list" id="reviewList"><div style="padding:14px;color:var(--text-dim);font-size:12.5px;">Ainda não há linhas sincronizadas.</div></div>
+          <div class="hint">Use “Adicionar pausa §” depois da frase desejada. O primeiro tempo encerra a palavra final; o segundo define a duração do instrumental.</div>
         </div>
       </div>
 
@@ -769,7 +792,32 @@ Direto do coração</textarea>
         <div class="field">
           <div class="field-label">Distância entre frases <span class="val" id="lineGapVal">1.45×</span></div>
           <input type="range" id="lineGap" min="70" max="220" step="5" value="145">
-          <div class="hint">Ajusta a distância entre a frase anterior, a atual e a próxima.</div>
+          <div class="hint">Ajusta a distância vertical da esteira de frases.</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Frases na tela <span class="val" id="phraseCountVal">3 frases</span></div>
+          <input type="range" id="phraseCount" min="1" max="7" step="1" value="3">
+          <div class="hint">A frase principal é B. Ao aumentar, aparecem C, D, E e as seguintes abaixo dela.</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Transição entre frases</div>
+          <label class="checkline"><input type="checkbox" id="phraseTransitionEnabled" checked> Animar a troca de frase</label>
+          <div class="countdown-settings" id="phraseTransitionSettings">
+            <div class="field" style="margin-top:14px;">
+              <div class="field-label">Efeito</div>
+              <select id="phraseTransitionSelect">
+                <option value="fade">Fluxo suave</option>
+                <option value="slide">Esteira vertical</option>
+                <option value="zoom">Profundidade suave</option>
+                <option value="reveal">Giro leve</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-label">Duração <span class="val" id="phraseTransitionDurationVal">0.50s</span></div>
+              <input type="range" id="phraseTransitionDuration" min="20" max="120" step="5" value="50">
+              <div class="hint">A troca começa antes da próxima frase e termina no primeiro tempo dela. Prévia e vídeo usam o mesmo movimento.</div>
+            </div>
+          </div>
         </div>
         <div class="field">
           <label class="checkline"><input type="checkbox" id="glowSpark" checked> Brilho na borda da palavra</label>
@@ -941,7 +989,7 @@ Direto do coração</textarea>
    STATE
 ============================================================ */
 const state = {
-  lines: [],              // [{words:[{text,t}]}]
+  lines: [],              // [{words:[{text,t}], breakAfter?:seconds}]
   audioDuration: 0,
   audioFile: null,
   audioObjectUrl: null,
@@ -965,6 +1013,10 @@ const state = {
     textEffect: 'original',
     glowStrength: 65,
     lineGap: 1.45,
+    phraseCount: 3,
+    phraseTransitionEnabled: true,
+    phraseTransition: 'fade',
+    phraseTransitionDuration: .5,
     glowSpark: true,
     bounceWords: true
   },
@@ -1030,36 +1082,121 @@ function toast(msg){
 ============================================================ */
 function buildLinesFromText(text){
   const rawLines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
-  return rawLines.map(l=>({
-    words: l.split(/\s+/).filter(w=>w.length>0).map(w=>({text:w, t:null}))
-  }));
+  const lines = [];
+  rawLines.forEach(raw=>{
+    const breakSpec = parseBreakMarker(raw);
+    if(breakSpec){
+      if(lines.length && breakSpec.duration > 0){
+        lines[lines.length-1].breakAfter = breakSpec.duration;
+        if(breakSpec.start != null) lines[lines.length-1].breakStart = breakSpec.start;
+      }
+      return;
+    }
+    lines.push({words:raw.split(/\s+/).filter(w=>w.length>0).map(w=>({text:w,t:null}))});
+  });
+  return lines;
+}
+
+function parseBreakMarker(raw){
+  const value = String(raw || '').trim();
+  const combined = value.match(/^\[([^\]]+)\]\s*§\s*\[([^\]]+)\]\s*$/);
+  const simple = value.match(/^§\s*\[([^\]]+)\]\s*$/);
+  if(!combined && !simple) return null;
+  const duration = parseMarkerTime((combined || simple)[combined ? 2 : 1]);
+  const start = combined ? parseMarkerTime(combined[1]) : null;
+  if(duration == null || duration <= 0 || (combined && start == null)) return null;
+  return {duration,start};
+}
+
+function parseMarkerTime(value){
+  const text = String(value || '').trim();
+  // Tambem entende mm:ss:cc, como 00:00:90 = 0,90 segundo.
+  const colonCentiseconds = text.match(/^(\d+):(\d{2}):(\d{1,2})$/);
+  if(colonCentiseconds){
+    return parseInt(colonCentiseconds[1],10)*60+
+      parseInt(colonCentiseconds[2],10)+parseInt(colonCentiseconds[3],10)/100;
+  }
+  return parseTimeInputFlexible(text);
+}
+
+function formatBreakDuration(duration){
+  return formatTime(duration).replace(/\.00$/,'');
+}
+
+function formatBreakMarker(duration,start=null){
+  const prefix = start != null ? '['+formatTime(start)+']' : '';
+  return prefix+'§['+formatBreakDuration(duration)+']';
+}
+
+function lyricsTextFromLines(lines){
+  const output = [];
+  lines.forEach(line=>{
+    output.push(line.words.map(word=>word.text).join(' '));
+    if(line.breakAfter > 0) output.push(formatBreakMarker(line.breakAfter,line.breakStart));
+  });
+  return output.join('\n');
 }
 
 /* ============================================================
    GAP FILL — interpolates timestamps for un-tapped words
 ============================================================ */
 function fillGaps(lines, audioDuration){
-  const flat = [];
-  for(const line of lines) for(const w of line.words) flat.push(w);
-  const n = flat.length;
-  let i = 0;
-  while(i < n){
-    if(flat[i].t == null){
+  function fillSegment(words,rightBoundary,leftBoundary){
+    const n = words.length;
+    let i = 0;
+    while(i < n){
+      if(words[i].t != null){ i++; continue; }
       let j = i;
-      while(j < n && flat[j].t == null) j++;
-      const runLen = j - i;
-      const leftTime = i>0 ? flat[i-1].t : 0;
-      let rightTime;
-      if(j < n) rightTime = flat[j].t;
-      else rightTime = (audioDuration && audioDuration > leftTime) ? audioDuration : leftTime + runLen*0.6 + 0.6;
-      if(rightTime <= leftTime) rightTime = leftTime + runLen*0.6 + 0.6;
-      const step = (rightTime - leftTime) / (runLen + 1);
-      for(let k=0;k<runLen;k++) flat[i+k].t = leftTime + step*(k+1);
+      while(j < n && words[j].t == null) j++;
+      const runLen = j-i;
+      const leftTime = i > 0 && words[i-1].t != null ? words[i-1].t : leftBoundary;
+      let rightTime = j < n ? words[j].t : rightBoundary;
+      if(rightTime == null || rightTime <= leftTime){
+        rightTime = leftTime+runLen*.6+.6;
+      }
+      const step = (rightTime-leftTime)/(runLen+1);
+      for(let k=0;k<runLen;k++) words[i+k].t = leftTime+step*(k+1);
       i = j;
-    } else {
-      i++;
     }
   }
+
+  let segment = [];
+  let segmentFloor = 0;
+  lines.forEach((line,li)=>{
+    segment.push(...line.words);
+    if(!(line.breakAfter > 0)) return;
+    const nextStart = lines[li+1]?.words[0]?.t;
+    const breakStart = line.breakStart != null
+      ? Math.max(0,line.breakStart)
+      : (nextStart != null ? Math.max(0,nextStart-line.breakAfter) : null);
+    fillSegment(segment,breakStart,segmentFloor);
+    segment = [];
+    if(line.breakStart != null) segmentFloor = breakStart+line.breakAfter;
+    else if(nextStart != null) segmentFloor = nextStart;
+    else if(breakStart != null) segmentFloor = breakStart+line.breakAfter;
+  });
+
+  fillSegment(segment,audioDuration || null,segmentFloor);
+  alignExplicitBreaks(lines);
+}
+
+function alignExplicitBreaks(lines){
+  lines.forEach((line,li)=>alignBreakToNextLine(lines,li));
+}
+
+function alignBreakToNextLine(lines,li){
+  const line = lines[li];
+  const nextStart = lines[li+1]?.words[0]?.t;
+  if(!(line?.breakAfter > 0) || line.breakStart == null || nextStart == null) return 0;
+  const target = line.breakStart+line.breakAfter;
+  const delta = target-nextStart;
+  if(Math.abs(delta) < .000001) return 0;
+  for(let i=li+1;i<lines.length;i++){
+    lines[i].words.forEach(word=>{
+      if(word.t != null) word.t = Math.max(0,word.t+delta);
+    });
+  }
+  return delta;
 }
 
 /* ============================================================
@@ -1071,6 +1208,14 @@ function parseLrcText(text){
   let isEnhanced = false;
   for(let raw of lines){
     raw = raw.replace(/\r$/,'');
+    const breakSpec = parseBreakMarker(raw);
+    if(breakSpec){
+      if(out.length && breakSpec.duration > 0){
+        out[out.length-1].breakAfter = breakSpec.duration;
+        if(breakSpec.start != null) out[out.length-1].breakStart = breakSpec.start;
+      }
+      continue;
+    }
     const m = raw.match(/^\[(\d+:\d{2}(?:\.\d+)?)\](.*)$/);
     if(!m) continue;
     const lineTime = parseTimeTag(m[1]);
@@ -1105,7 +1250,13 @@ function parseLrcText(text){
 function exportEnhancedLrc(){
   const lines = state.lines;
   // work on a deep clone shifted by offset so exported file matches what user hears
-  const clone = lines.map(l=>({words: l.words.map(w=>({text:w.text, t:w.t}))}));
+  const clone = lines.map(l=>({
+    words:l.words.map(w=>({text:w.text,t:w.t})),
+    ...(l.breakAfter > 0 ? {
+      breakAfter:l.breakAfter,
+      ...(l.breakStart != null ? {breakStart:l.breakStart} : {})
+    } : {})
+  }));
   fillGaps(clone, state.audioDuration);
   const off = state.offset;
   let out = '';
@@ -1118,6 +1269,10 @@ function exportEnhancedLrc(){
       out += ` <${formatTime(t)}>${line.words[i].text}`;
     }
     out += '\n';
+    if(line.breakAfter > 0){
+      const shiftedBreakStart = line.breakStart != null ? Math.max(0,line.breakStart+off) : null;
+      out += formatBreakMarker(line.breakAfter,shiftedBreakStart)+'\n';
+    }
   }
   return out;
 }
@@ -1195,7 +1350,7 @@ $('#lrcFile').addEventListener('change', (e)=>{
       return;
     }
     state.lines = lines;
-    lyricsInput.value = lines.map(l=>l.words.map(w=>w.text).join(' ')).join('\n');
+    lyricsInput.value = lyricsTextFromLines(lines);
     fillGaps(state.lines, state.audioDuration);
     $('#importStatus').textContent = enhanced
       ? '✅ Importado com tempo por palavra — pronto para tocar.'
@@ -1392,6 +1547,9 @@ function renderSyncPreview(){
       return `<span class="${cls}">${escapeHtml(w.text)}</span>`;
     });
     html += `<div>${parts.join(' ')}</div>`;
+    if(line.breakAfter > 0){
+      html += `<div class="break-marker">${formatBreakMarker(line.breakAfter,line.breakStart)} · pausa instrumental</div>`;
+    }
   });
   $('#syncPreview').innerHTML = html || '—';
   if(cur){
@@ -1401,6 +1559,18 @@ function renderSyncPreview(){
 
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function resolvedBreakStart(li){
+  const line = state.lines[li];
+  if(!line || !(line.breakAfter > 0)) return null;
+  if(line.breakStart != null) return line.breakStart;
+  const nextStart = state.lines[li+1]?.words[0]?.t;
+  return nextStart != null ? Math.max(0,nextStart-line.breakAfter) : null;
+}
+
+function syncLyricsTextarea(){
+  lyricsInput.value = lyricsTextFromLines(state.lines);
 }
 
 /* ============================================================
@@ -1422,8 +1592,22 @@ function renderReviewList(){
       <div class="review-row-top">
         <button class="seek" data-li="${li}">${t0!=null?formatTime(t0):'--:--'}</button>
         <span class="txt">${escapeHtml(text)}</span>
+        ${!(line.breakAfter > 0) && li < state.lines.length-1 ? `<button class="add-break" data-li="${li}" title="Adicionar pausa instrumental">§</button>` : ''}
         <button class="edit-toggle" data-li="${li}">✎</button>
       </div>
+      ${line.breakAfter > 0 ? `
+        <div class="break-editor" data-li="${li}">
+          <div class="break-field">
+            <label>Fim da palavra final</label>
+            <div><span class="bracket">[</span><input class="timecode-input break-start" value="${resolvedBreakStart(li)!=null?formatTime(resolvedBreakStart(li)):''}" placeholder="mm:ss.xx"><span class="bracket">]</span></div>
+          </div>
+          <span class="bracket">§</span>
+          <div class="break-field">
+            <label>Duração da pausa</label>
+            <div><span class="bracket">[</span><input class="timecode-input break-duration" value="${formatBreakDuration(line.breakAfter)}" placeholder="mm:ss"><span class="bracket">]</span></div>
+          </div>
+          <button class="break-remove" data-li="${li}" title="Remover pausa instrumental">×</button>
+        </div>` : ''}
       <div class="word-edit" data-li="${li}" style="display:none;"></div>
     `;
     el.appendChild(row);
@@ -1445,6 +1629,65 @@ function renderReviewList(){
       if(!open) renderWordEdit(li, wrap);
     });
   });
+  el.querySelectorAll('.add-break').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const li = parseInt(btn.dataset.li,10);
+      const line = state.lines[li];
+      const lastWord = line.words[line.words.length-1];
+      const nextStart = state.lines[li+1]?.words[0]?.t;
+      if(lastWord?.t != null && nextStart != null){
+        line.breakStart = Math.min(nextStart,Math.max(lastWord.t+.08,nextStart-.5));
+        line.breakAfter = Math.max(.01,nextStart-line.breakStart);
+      }else{
+        line.breakAfter = 5;
+      }
+      syncLyricsTextarea();
+      renderReviewList();
+      renderSyncPreview();
+      renderStageStatic();
+    });
+  });
+  el.querySelectorAll('.break-editor').forEach(editor=>{
+    const li = parseInt(editor.dataset.li,10);
+    const startInput = editor.querySelector('.break-start');
+    const durationInput = editor.querySelector('.break-duration');
+    startInput.addEventListener('change',()=>{
+      const line = state.lines[li];
+      const lastWord = line.words[line.words.length-1];
+      const parsed = parseMarkerTime(startInput.value);
+      if(parsed == null){ toast('Use um tempo como 00:00.90'); renderReviewList(); return; }
+      line.breakStart = lastWord?.t != null ? Math.max(lastWord.t+.01,parsed) : Math.max(0,parsed);
+      alignBreakToNextLine(state.lines,li);
+      syncLyricsTextarea();
+      renderReviewList();
+      renderSyncPreview();
+      renderStageStatic();
+    });
+    durationInput.addEventListener('change',()=>{
+      const line = state.lines[li];
+      const currentStart = resolvedBreakStart(li);
+      const parsed = parseMarkerTime(durationInput.value);
+      if(parsed == null || parsed <= 0){ toast('A pausa precisa ser maior que zero'); renderReviewList(); return; }
+      line.breakAfter = parsed;
+      if(currentStart != null) line.breakStart = currentStart;
+      alignBreakToNextLine(state.lines,li);
+      syncLyricsTextarea();
+      renderReviewList();
+      renderSyncPreview();
+      renderStageStatic();
+    });
+  });
+  el.querySelectorAll('.break-remove').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const line = state.lines[parseInt(btn.dataset.li,10)];
+      delete line.breakAfter;
+      delete line.breakStart;
+      syncLyricsTextarea();
+      renderReviewList();
+      renderSyncPreview();
+      renderStageStatic();
+    });
+  });
 }
 
 function renderWordEdit(li, wrap){
@@ -1460,6 +1703,11 @@ function renderWordEdit(li, wrap){
     input.addEventListener('change', ()=>{
       const v = parseTimeInputFlexible(input.value);
       w.t = v;
+      if(wi === state.lines[li].words.length-1 && state.lines[li].breakStart != null && v != null){
+        state.lines[li].breakStart = Math.max(state.lines[li].breakStart,v+.01);
+        alignBreakToNextLine(state.lines,li);
+        syncLyricsTextarea();
+      }
       renderReviewList();
       renderStageStatic();
     });
@@ -1525,6 +1773,31 @@ $('#glowStrength').addEventListener('input', e=>{
 $('#lineGap').addEventListener('input', e=>{
   state.style.lineGap = parseInt(e.target.value,10)/100;
   $('#lineGapVal').textContent = state.style.lineGap.toFixed(2)+'×';
+  renderStageStatic();
+});
+$('#phraseCount').addEventListener('input', e=>{
+  state.style.phraseCount = clamp(parseInt(e.target.value,10) || 3,1,7);
+  $('#phraseCountVal').textContent = state.style.phraseCount+(state.style.phraseCount === 1 ? ' frase' : ' frases');
+  renderStageStatic();
+});
+function refreshPhraseTransitionUI(){
+  const enabled = state.style.phraseTransitionEnabled;
+  $('#phraseTransitionSettings').classList.toggle('is-disabled',!enabled);
+  $('#phraseTransitionSelect').disabled = !enabled;
+  $('#phraseTransitionDuration').disabled = !enabled;
+}
+$('#phraseTransitionEnabled').addEventListener('change', e=>{
+  state.style.phraseTransitionEnabled = e.target.checked;
+  refreshPhraseTransitionUI();
+  renderStageStatic();
+});
+$('#phraseTransitionSelect').addEventListener('change', e=>{
+  state.style.phraseTransition = e.target.value;
+  renderStageStatic();
+});
+$('#phraseTransitionDuration').addEventListener('input', e=>{
+  state.style.phraseTransitionDuration = parseInt(e.target.value,10)/100;
+  $('#phraseTransitionDurationVal').textContent = state.style.phraseTransitionDuration.toFixed(2)+'s';
   renderStageStatic();
 });
 
@@ -1674,7 +1947,14 @@ function wordEnd(li, wi){
   if(w.t == null) return null;
   if(wi+1 < line.words.length && line.words[wi+1].t != null) return line.words[wi+1].t;
   const nextLine = state.lines[li+1];
-  if(nextLine && nextLine.words[0] && nextLine.words[0].t != null) return nextLine.words[0].t;
+  if(nextLine && nextLine.words[0] && nextLine.words[0].t != null){
+    const nextStart = nextLine.words[0].t;
+    if(line.breakAfter > 0){
+      const exactEnd = line.breakStart != null ? line.breakStart : nextStart-line.breakAfter;
+      return Math.max(w.t+.01,exactEnd);
+    }
+    return nextStart;
+  }
   return w.t + 0.6;
 }
 
@@ -1740,9 +2020,10 @@ function drawFittedText(ctx, text, x, y, maxWidth, size, color, align){
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = color;
-  ctx.globalAlpha = .42;
+  const inheritedAlpha = ctx.globalAlpha;
+  ctx.globalAlpha = inheritedAlpha*.42;
   ctx.fillText(text, x, y, maxWidth);
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = inheritedAlpha;
 }
 
 function getWordMetrics(ctx, line, fontSize, maxWidth){
@@ -1777,23 +2058,23 @@ function wordFillPercent(li, wi, displayTime){
   return value;
 }
 
-function drawTextWithEffect(ctx,text,x,y,color,fontSize,isFill){
+function drawTextWithEffect(ctx,text,x,y,color,fontSize,isFill,effectsEnabled=true){
   const strength = state.style.glowStrength/100;
   ctx.save();
   ctx.fillStyle = color;
-  if(state.style.textEffect === 'neon'){
+  if(effectsEnabled && state.style.textEffect === 'neon'){
     ctx.shadowColor = color;
     ctx.shadowBlur = fontSize*(.16+strength*.42);
-  }else if(state.style.textEffect === 'shadow'){
+  }else if(effectsEnabled && state.style.textEffect === 'shadow'){
     ctx.shadowColor = 'rgba(0,0,0,.92)';
     ctx.shadowBlur = fontSize*.16;
     ctx.shadowOffsetX = fontSize*.05;
     ctx.shadowOffsetY = fontSize*.09;
-  }else if(state.style.textEffect === 'original' && isFill && state.style.glowSpark){
+  }else if(effectsEnabled && state.style.textEffect === 'original' && isFill && state.style.glowSpark){
     ctx.shadowColor = color;
     ctx.shadowBlur = fontSize*(.08+strength*.3);
   }
-  if(state.style.textEffect === 'outline'){
+  if(effectsEnabled && state.style.textEffect === 'outline'){
     ctx.strokeStyle = color;
     ctx.lineWidth = Math.max(2,fontSize*.055);
     ctx.lineJoin = 'round';
@@ -1804,23 +2085,31 @@ function drawTextWithEffect(ctx,text,x,y,color,fontSize,isFill){
   ctx.restore();
 }
 
-function drawCurrentLine(ctx, li, displayTime, width, height, fontSize){
-  const maxWidth = width * .86;
+function drawCurrentLine(ctx, li, displayTime, width, height, fontSize, options={}){
+  const maxWidth = options.maxWidth || width * .86;
   const {rows, gap} = getWordMetrics(ctx, state.lines[li], fontSize, maxWidth);
   const lineHeight = fontSize * 1.42;
-  const firstY = height/2 - ((rows.length-1) * lineHeight)/2;
+  const centerY = options.centerY == null ? height/2 : options.centerY;
+  const firstY = centerY - ((rows.length-1) * lineHeight)/2;
   const leftAligned = state.style.align === 'left';
+  const anchorX = leftAligned ? width*.08 : width/2;
+  const showFill = options.showFill !== false;
+  const effectsEnabled = options.effectsEnabled !== false;
+  const animateWords = options.animateWords !== false;
+  const baseColor = options.baseColor || state.style.colorBase;
+  const fillColor = options.fillColor || state.style.colorFill;
+  const glowColor = options.glowColor || state.style.colorGlow;
 
   rows.forEach((row, rowIndex)=>{
-    let cursorX = leftAligned ? width*.08 : (width-row.width)/2;
+    let cursorX = leftAligned ? anchorX : anchorX-row.width/2;
     const y = firstY + rowIndex*lineHeight;
     row.items.forEach(({word, wi, width:wordWidth})=>{
-      const fill = wordFillPercent(li, wi, displayTime);
+      const fill = showFill ? wordFillPercent(li, wi, displayTime) : 0;
       const end = wordEnd(li, wi);
       const singing = word.t != null && end != null && displayTime >= word.t && displayTime < end;
       let scale = 1;
       let lift = 0;
-      if(state.style.bounceWords && word.t != null){
+      if(animateWords && state.style.bounceWords && word.t != null){
         const phase = (displayTime-word.t)/.38;
         if(state.style.motion === 'bounce' && phase >= 0 && phase <= 1){
           scale = 1 + Math.sin(Math.PI*phase)*.18;
@@ -1840,22 +2129,22 @@ function drawCurrentLine(ctx, li, displayTime, width, height, fontSize){
       ctx.font = `800 ${fontSize}px ${canvasFontFamily()}`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      drawTextWithEffect(ctx,word.text,cursorX,y,state.style.colorBase,fontSize,false);
+      drawTextWithEffect(ctx,word.text,cursorX,y,baseColor,fontSize,false,effectsEnabled);
 
       if(fill > 0){
         ctx.save();
         ctx.beginPath();
         ctx.rect(cursorX-fontSize*.04, y-fontSize*.7, wordWidth*fill+fontSize*.08, fontSize*1.4);
         ctx.clip();
-        drawTextWithEffect(ctx,word.text,cursorX,y,state.style.colorFill,fontSize,true);
+        drawTextWithEffect(ctx,word.text,cursorX,y,fillColor,fontSize,true,effectsEnabled);
         ctx.restore();
       }
 
-      if(state.style.glowSpark && singing && fill > 0 && fill < 1){
+      if(effectsEnabled && state.style.glowSpark && singing && fill > 0 && fill < 1){
         const sparkX = cursorX + wordWidth*fill;
-        ctx.strokeStyle = state.style.colorGlow;
+        ctx.strokeStyle = glowColor;
         ctx.lineWidth = Math.max(2, fontSize*.045);
-        ctx.shadowColor = state.style.colorGlow;
+        ctx.shadowColor = glowColor;
         ctx.shadowBlur = fontSize*(.08+state.style.glowStrength/100*.25);
         ctx.beginPath();
         ctx.moveTo(sparkX, y-fontSize*.43);
@@ -1870,6 +2159,276 @@ function drawCurrentLine(ctx, li, displayTime, width, height, fontSize){
     top:firstY-fontSize*.68,
     bottom:firstY+(rows.length-1)*lineHeight+fontSize*.68
   };
+}
+
+/* A troca de frases e uma unica linha do tempo baseada no tempo da musica.
+   A sai, B assume A e C, D, E... sobem uma posicao. Como nenhum estado visual
+   depende de rAF/setTimeout, a previa e cada quadro exportado sao identicos. */
+function phraseStart(li){
+  return state.lines[li]?.words[0]?.t ?? null;
+}
+
+function smootherStep(value){
+  const t = clamp(value,0,1);
+  return t*t*t*(t*(t*6-15)+10);
+}
+
+function mix(from,to,progress){
+  return from+(to-from)*progress;
+}
+
+function visiblePhraseCount(){
+  return clamp(Math.round(Number(state.style.phraseCount) || 3),1,7);
+}
+
+function visibleFutureCount(){
+  return Math.max(0,visiblePhraseCount()-2);
+}
+
+function phraseRolePose(role, fontSize){
+  const count = visiblePhraseCount();
+  const futureCount = visibleFutureCount();
+  const density = count <= 3 ? 1 : Math.max(.48,1-(count-3)*.13);
+  const distance = fontSize*(state.style.lineGap+1.02)*density;
+  if(role === 0) return {x:0,y:0,scale:1,alpha:1,rotation:0};
+  if(role === -1){
+    return count >= 2
+      ? {x:0,y:-distance,scale:.58,alpha:.42,rotation:0}
+      : {x:0,y:-distance*.88,scale:.48,alpha:0,rotation:-2};
+  }
+  if(role < -1){
+    return {x:0,y:-distance*1.78,scale:.42,alpha:0,rotation:-2.6};
+  }
+  if(role <= futureCount){
+    return {
+      x:0,
+      y:distance*role,
+      scale:Math.max(.32,.62-(role-1)*.075),
+      alpha:Math.max(.15,.42-(role-1)*.06),
+      rotation:0
+    };
+  }
+  const outsideRole = Math.max(1,futureCount+.82);
+  return {
+    x:0,
+    y:distance*outsideRole,
+    scale:Math.max(.28,.54-futureCount*.055),
+    alpha:0,
+    rotation:2.2
+  };
+}
+
+function transitionTuning(){
+  switch(state.style.phraseTransition){
+    case 'slide': return {tilt:1.55,arc:.075,depth:0};
+    case 'zoom': return {tilt:.65,arc:.035,depth:.075};
+    case 'reveal': return {tilt:1.05,arc:.055,depth:.025};
+    default: return {tilt:.85,arc:.045,depth:.015};
+  }
+}
+
+function interpolatePhrasePose(fromRole,toRole,progress,fontSize,direction){
+  const from = phraseRolePose(fromRole,fontSize);
+  const to = phraseRolePose(toRole,fontSize);
+  const eased = smootherStep(progress);
+  const keyframeArc = Math.sin(Math.PI*eased);
+  const tuning = transitionTuning();
+  return {
+    y:mix(from.y,to.y,eased),
+    x:keyframeArc*fontSize*tuning.arc*direction,
+    scale:Math.max(.01,mix(from.scale,to.scale,eased)-keyframeArc*tuning.depth),
+    alpha:mix(from.alpha,to.alpha,eased),
+    rotation:mix(from.rotation,to.rotation,eased)+keyframeArc*tuning.tilt*direction
+  };
+}
+
+function phraseTransitionState(li,displayTime){
+  if(!state.style.phraseTransitionEnabled || li < 0 || !state.lines[li+1]) return null;
+  const currentStart = phraseStart(li);
+  const nextStart = phraseStart(li+1);
+  if(currentStart == null || nextStart == null || nextStart <= currentStart) return null;
+
+  const requested = Math.max(.2,state.style.phraseTransitionDuration || .5);
+  // Em frases muito curtas, preserva mais da metade do tempo com B parado e legivel.
+  const duration = Math.min(requested,Math.max(.08,(nextStart-currentStart)*.46));
+  const transitionStart = nextStart-duration;
+  if(displayTime < transitionStart || displayTime >= nextStart) return null;
+  return {progress:clamp((displayTime-transitionStart)/duration,0,1)};
+}
+
+function drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,pose,activeMix){
+  if(!state.lines[li] || pose.alpha <= .001) return;
+  const originX = state.style.align === 'left' ? width*.08 : width/2;
+  const active = clamp(activeMix,0,1);
+  const gray = '#837b9d';
+
+  ctx.save();
+  ctx.globalAlpha *= pose.alpha;
+  ctx.translate(originX+pose.x,height/2+pose.y);
+  ctx.rotate(pose.rotation*Math.PI/180);
+  ctx.scale(pose.scale,pose.scale);
+  ctx.translate(-originX,-height/2);
+  const options = {
+    centerY:height/2,
+    maxWidth:width*.86/pose.scale,
+    animateWords:false,
+    effectsEnabled:false,
+    showFill:false,
+    baseColor:gray
+  };
+
+  if(active < .999){
+    ctx.save();
+    ctx.globalAlpha *= 1-active;
+    drawCurrentLine(ctx,li,displayTime,width,height,fontSize,options);
+    ctx.restore();
+  }
+  if(active > .001){
+    ctx.save();
+    ctx.globalAlpha *= active;
+    drawCurrentLine(ctx,li,displayTime,width,height,fontSize,{
+      ...options,
+      animateWords:true,
+      effectsEnabled:true,
+      showFill:true,
+      baseColor:state.style.colorBase,
+      fillColor:state.style.colorFill,
+      glowColor:state.style.colorGlow
+    });
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function instrumentalBreakInfo(li){
+  const line = state.lines[li];
+  const duration = Number(line?.breakAfter) || 0;
+  const nextStart = phraseStart(li+1);
+  if(duration <= 0) return null;
+  const start = line.breakStart != null
+    ? Math.max(0,line.breakStart)
+    : (nextStart != null ? Math.max(0,nextStart-duration) : null);
+  if(start == null) return null;
+  const end = start+duration;
+  const revealStart = start+duration*.8;
+  const requested = Math.max(.2,state.style.phraseTransitionDuration || .5);
+  const transitionDuration = state.style.phraseTransitionEnabled
+    ? Math.min(requested,Math.max(.001,duration*.2))
+    : 0;
+  return {
+    start,
+    end,
+    revealStart,
+    transitionStart:end-transitionDuration,
+    duration
+  };
+}
+
+function drawInstrumentalBreak(ctx,li,displayTime,width,height,fontSize,info){
+  const center = phraseRolePose(0,fontSize);
+  const top = phraseRolePose(-1,fontSize);
+  const bottom = phraseRolePose(1,fontSize);
+
+  // Enquanto B ainda esta sendo cantada, C permanece escondida por causa da pausa.
+  if(displayTime < info.start){
+    drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,top,0);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,center,1);
+    return;
+  }
+
+  const settleDuration = Math.min(.28,Math.max(.001,info.duration*.06),info.duration*.2);
+  const settle = smootherStep((displayTime-info.start)/settleDuration);
+  if(displayTime < info.revealStart){
+    const fadingTop = {...top,alpha:top.alpha*(1-settle)};
+    drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,fadingTop,0);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,center,1-settle);
+    return;
+  }
+
+  if(displayTime < info.transitionStart || !state.style.phraseTransitionEnabled){
+    const revealWindow = Math.max(.08,Math.min(.28,(info.transitionStart-info.revealStart)*.35));
+    const reveal = smootherStep((displayTime-info.revealStart)/revealWindow);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,center,0);
+    // Mesmo com 1 ou 2 frases configuradas, C pode ser anunciado discretamente
+    // nos 20% finais; a quantidade escolhida volta a valer na troca.
+    const announcedBottom = visibleFutureCount() > 0
+      ? bottom
+      : {...bottom,alpha:.42,scale:.62};
+    drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,{...announcedBottom,alpha:announcedBottom.alpha*reveal},0);
+    return;
+  }
+
+  // Nos ultimos instantes, a esteira normal termina exatamente no inicio de C.
+  const p = clamp((displayTime-info.transitionStart)/(info.end-info.transitionStart),0,1);
+  const mainEase = smootherStep(p);
+  const bPose = interpolatePhrasePose(0,-1,p,fontSize,-1);
+  const cPose = interpolatePhrasePose(1,0,p,fontSize,1);
+
+  // D em diante permanecem ocultas durante a pausa e entram juntas apenas
+  // durante a troca final, terminando nas posicoes escolhidas pelo usuario.
+  const futureCount = visibleFutureCount();
+  for(let targetRole=futureCount;targetRole>=1;targetRole--){
+    const lineIndex = li+targetRole+1;
+    const pose = interpolatePhrasePose(targetRole+1,targetRole,p,fontSize,1);
+    drawPhraseAtPose(ctx,lineIndex,displayTime,width,height,fontSize,{...pose,alpha:pose.alpha*mainEase},0);
+  }
+  if(mainEase < .5){
+    drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,0);
+  }else{
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,0);
+    drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
+  }
+}
+
+function drawPhraseStack(ctx,li,displayTime,width,height,fontSize){
+  const breakInfo = instrumentalBreakInfo(li);
+  if(breakInfo && displayTime < breakInfo.end){
+    drawInstrumentalBreak(ctx,li,displayTime,width,height,fontSize,breakInfo);
+    return;
+  }
+
+  const transition = phraseTransitionState(li,displayTime);
+  if(!transition){
+    if(visiblePhraseCount() >= 2){
+      drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,phraseRolePose(-1,fontSize),0);
+    }
+    for(let role=visibleFutureCount();role>=1;role--){
+      drawPhraseAtPose(ctx,li+role,displayTime,width,height,fontSize,phraseRolePose(role,fontSize),0);
+    }
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,phraseRolePose(0,fontSize),1);
+    return;
+  }
+
+  const p = transition.progress;
+  const mainEase = smootherStep(p);
+  const exitProgress = clamp(p/.9,0,1);
+  const entryProgress = clamp((p-.06)/.94,0,1);
+  const bPose = interpolatePhrasePose(0,-1,p,fontSize,-1);
+  const cPose = interpolatePhrasePose(1,0,p,fontSize,1);
+
+  // A sai por cima. C, D, E... sobem simultaneamente e uma nova ultima frase
+  // entra por baixo, qualquer que seja a quantidade configurada.
+  if(visiblePhraseCount() >= 2){
+    const aPose = interpolatePhrasePose(-1,-2,exitProgress,fontSize,-1);
+    drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,aPose,0);
+  }
+  const futureCount = visibleFutureCount();
+  if(!(state.lines[li+1]?.breakAfter > 0)){
+    for(let sourceRole=futureCount+1;sourceRole>=2;sourceRole--){
+      const lineIndex = li+sourceRole;
+      const progress = sourceRole === futureCount+1 ? entryProgress : p;
+      const pose = interpolatePhrasePose(sourceRole,sourceRole-1,progress,fontSize,1);
+      drawPhraseAtPose(ctx,lineIndex,displayTime,width,height,fontSize,pose,0);
+    }
+  }
+  if(mainEase < .5){
+    drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,1-mainEase);
+  }else{
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,1-mainEase);
+    drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
+  }
 }
 
 function roundedRectPath(ctx,x,y,width,height,radius){
@@ -2005,14 +2564,7 @@ function drawCanvasFrame(canvas, ctx, mediaTime){
     drawFittedText(ctx, first, anchorX, height/2, width*.84, state.style.fontSize*unit*.72, '#837b9d', align);
   } else {
     const fontSize = state.style.fontSize*unit;
-    const bounds = drawCurrentLine(ctx, li, displayTime, width, height, fontSize);
-    const phraseGap = fontSize*state.style.lineGap;
-    if(state.lines[li-1]){
-      drawFittedText(ctx, state.lines[li-1].words.map(w=>w.text).join(' '), anchorX, bounds.top-phraseGap, width*.84, fontSize*.55, '#837b9d', align);
-    }
-    if(state.lines[li+1]){
-      drawFittedText(ctx, state.lines[li+1].words.map(w=>w.text).join(' '), anchorX, bounds.bottom+phraseGap, width*.84, fontSize*.6, '#837b9d', align);
-    }
+    drawPhraseStack(ctx,li,displayTime,width,height,fontSize);
   }
   drawCountdownSticker(ctx,width,height,mediaTime);
   ctx.restore();
@@ -2497,6 +3049,7 @@ refreshOffsetLabel();
 updateStageBadge();
 setSyncSpeed(1);
 refreshExportSummary();
+refreshPhraseTransitionUI();
 
 })();
 </script>
