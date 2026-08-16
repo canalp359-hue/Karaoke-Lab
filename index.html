@@ -147,7 +147,36 @@ input,select,textarea{font-family:inherit;}
 }
 .compact-input:focus{outline:none;border-color:var(--cyan);}
 .countdown-settings{transition:opacity .18s;}
-.countdown-settings.is-disabled{opacity:.42;}
+.countdown-settings.is-disabled{opacity:.72;}
+.countdown-version{
+  display:inline-flex;align-items:center;margin:10px 0 2px;padding:6px 9px;
+  border:1px solid rgba(77,227,209,.42);border-radius:999px;
+  background:rgba(77,227,209,.1);color:var(--cyan);
+  font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+}
+.countdown-list{display:grid;gap:10px;margin-top:8px;}
+.countdown-item{padding:11px;background:var(--bg-2);border:1px solid var(--panel-border);border-radius:var(--radius-sm);}
+.countdown-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.countdown-item-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-mid);}
+.countdown-item-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;}
+.countdown-item .field{margin-bottom:10px;}
+.countdown-item .field:last-child{margin-bottom:0;}
+.countdown-empty{padding:12px;text-align:center;border:1px dashed var(--panel-border);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text-dim);}
+.project-card{padding:12px;background:linear-gradient(145deg,#1d1734,#151127);border:1px solid #3b3161;border-radius:var(--radius-sm);}
+.project-card .btn-row{margin-top:10px;}
+.project-open input{display:none;}
+.project-status{margin-top:9px;font-size:11.5px;line-height:1.5;color:var(--text-dim);}
+.project-status.ready{color:var(--cyan);}
+.project-status.warn{color:var(--gold);}
+.font-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+.font-card{min-width:0;padding:10px;background:var(--bg-2);border:1px solid var(--panel-border);border-radius:var(--radius-sm);color:var(--text-hi);cursor:pointer;text-align:left;transition:border-color .16s,background .16s,transform .16s,box-shadow .16s;}
+.font-card:hover{border-color:#5a4b86;background:#211a3b;transform:translateY(-1px);}
+.font-card.active{border-color:var(--cyan);background:#162d34;box-shadow:0 0 0 1px #4de3d133;}
+.font-card-sample{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px;line-height:1.25;color:#fff;}
+.font-card-name{display:block;margin-top:5px;font:700 9.5px 'Space Mono',monospace;color:var(--text-dim);}
+.font-card.active .font-card-name{color:var(--cyan);}
+.sync-end-marker{display:inline-flex;align-items:center;margin-left:8px;padding:2px 7px;border-radius:999px;border:1px solid #4de3d155;color:var(--cyan);font:700 9px 'Space Mono',monospace;vertical-align:middle;}
+.sync-end-marker.now{border-color:var(--gold);color:var(--gold);background:#ffce5415;}
 
 .filebtn{
   display:flex;align-items:center;gap:10px;
@@ -629,6 +658,14 @@ input[type=range]::-moz-range-thumb{
 
       <!-- AUDIO -->
       <div class="tab-panel active" data-panel="audio">
+        <div class="field project-card">
+          <div class="field-label">Projeto da música</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="saveProjectBtn">💾 Salvar projeto</button>
+            <label class="btn btn-ghost project-open">📂 Abrir projeto<input type="file" id="projectFile" accept=".json,.karaoke-project,application/json"></label>
+          </div>
+          <div class="project-status" id="projectStatus">Guarda a letra, sincronização, pausas, efeitos, fundo e contagens. O áudio é selecionado novamente ao abrir.</div>
+        </div>
         <div class="field">
           <div class="field-label">Arquivo de áudio</div>
           <label class="filebtn">
@@ -674,7 +711,7 @@ Direto do coração</textarea>
             <button data-mode="word" class="active">Palavra por palavra</button>
             <button data-mode="line">Linha a linha (rápido)</button>
           </div>
-          <div class="hint" id="syncModeHint">Mais preciso: aperte no exato instante em que cada palavra começa a ser cantada.</div>
+          <div class="hint" id="syncModeHint">Marque o início de cada palavra. Depois da última palavra da música, aperte mais uma vez quando ela realmente terminar.</div>
         </div>
 
         <div class="field">
@@ -710,7 +747,7 @@ Direto do coração</textarea>
         </div>
 
         <div class="kbd-hints">
-          <span><b>Espaço</b> marca</span>
+          <span><b>Espaço</b> marca palavra/final</span>
           <span><b>⌫</b> desfaz</span>
           <span><b>P</b> pausa</span>
           <span><b>[ ]</b> velocidade</span>
@@ -729,6 +766,7 @@ Direto do coração</textarea>
       <div class="tab-panel" data-panel="estilo">
         <div class="field">
           <div class="field-label">Fonte de palco</div>
+          <div class="font-gallery" id="fontGallery" aria-label="Prévia das fontes disponíveis"></div>
           <select id="fontSelect">
             <option value="'Unbounded',sans-serif">Unbounded</option>
             <option value="'Anton',sans-serif">Anton</option>
@@ -736,6 +774,7 @@ Direto do coração</textarea>
             <option value="'Poppins',sans-serif">Poppins</option>
             <option value="'Manrope',sans-serif">Manrope</option>
           </select>
+          <div class="hint">Clique em uma amostra para aplicar a fonte. O seletor abaixo continua disponível para acessibilidade.</div>
         </div>
         <div class="field">
           <div class="field-label">Tamanho <span class="val" id="fontSizeVal">54px</span></div>
@@ -851,6 +890,7 @@ Direto do coração</textarea>
         <div class="field">
           <div class="field-label">Sticker de contagem regressiva</div>
           <label class="checkline"><input type="checkbox" id="countdownEnabled"> Mostrar contagem no palco</label>
+          <div class="countdown-version">✓ Múltiplas contagens · até 2 min</div>
           <div class="countdown-settings is-disabled" id="countdownSettings">
             <div class="field" style="margin-top:14px;">
               <div class="field-label">Estilo</div>
@@ -860,13 +900,14 @@ Direto do coração</textarea>
               </div>
             </div>
             <div class="field">
-              <div class="field-label">Duração <span class="val" id="countdownDurationVal">5.0s</span></div>
-              <input type="range" id="countdownDuration" min="0.5" max="15" step="0.1" value="5">
-            </div>
-            <div class="field">
-              <div class="field-label">Começar no tempo</div>
-              <input class="compact-input" type="number" id="countdownStart" min="0" step="0.1" value="0" aria-label="Tempo de início da contagem regressiva em segundos">
-              <button class="btn btn-ghost btn-sm" id="countdownUseCurrent" style="margin-top:8px;">⏱ Usar tempo atual</button>
+              <div class="field-label">Contagens <button class="btn btn-ghost btn-sm" id="addCountdown">＋ Adicionar</button></div>
+              <div class="countdown-list" id="countdownList">
+                <div class="countdown-item" data-countdown-id="1">
+                  <div class="countdown-item-head"><span class="countdown-item-title">Contagem 1</span><button class="btn btn-ghost btn-sm" data-countdown-action="remove">Remover</button></div>
+                  <div class="field"><div class="field-label">Começar no tempo</div><div class="countdown-item-grid"><input class="compact-input" type="number" data-countdown-field="start" min="0" step="0.1" value="0"><button class="btn btn-ghost btn-sm" data-countdown-action="current">⏱ Atual</button></div></div>
+                  <div class="field"><div class="field-label">Duração <span class="val">5.0s</span></div><input type="range" data-countdown-field="duration" min="0.5" max="120" step="0.1" value="5"></div>
+                </div>
+              </div>
             </div>
             <div class="field">
               <div class="field-label">Posição</div>
@@ -882,7 +923,7 @@ Direto do coração</textarea>
               <div class="field-label">Cor</div>
               <div class="swatch-row"><label>Destaque <input type="color" id="countdownColor" value="#ffce54"></label></div>
             </div>
-            <div class="hint">O sticker aparece no tempo escolhido, conta até zero e desaparece automaticamente.</div>
+            <div class="hint">Cada contagem pode durar até 2 minutos. No estilo Números, ela só aparece nos 60 segundos finais. Você pode adicionar quantas contagens precisar.</div>
           </div>
         </div>
         <div class="field">
@@ -993,11 +1034,12 @@ const state = {
   audioDuration: 0,
   audioFile: null,
   audioObjectUrl: null,
+  projectAudioMeta: null,
   syncMode: 'word',
   reactionMs: 120,
   syncSpeed: 1,
   syncing: false,
-  syncQueue: [],           // [{li,wi}]
+  syncQueue: [],           // palavras/linhas + uma etapa final para encerrar a música
   syncCursor: 0,
   syncHistory: [],         // stack of {li,wi}
   offset: 0,               // seconds, playback nudge
@@ -1024,8 +1066,7 @@ const state = {
   countdown: {
     enabled:false,
     style:'numbers',
-    duration:5,
-    start:0,
+    items:[{id:1,duration:5,start:0}],
     position:'top-right',
     color:'#ffce54'
   },
@@ -1164,6 +1205,11 @@ function fillGaps(lines, audioDuration){
   let segmentFloor = 0;
   lines.forEach((line,li)=>{
     segment.push(...line.words);
+    if(line.endT != null){
+      fillSegment(segment,Math.max(segmentFloor,line.endT),segmentFloor);
+      segment = [];
+      segmentFloor = Math.max(segmentFloor,line.endT);
+    }
     if(!(line.breakAfter > 0)) return;
     const nextStart = lines[li+1]?.words[0]?.t;
     const breakStart = line.breakStart != null
@@ -1222,6 +1268,7 @@ function parseLrcText(text){
     let rest = m[2];
     if(lineTime == null) continue;
     const words = [];
+    let lineEnd = null;
     if(/<\d+:\d{2}(?:\.\d+)?>/.test(rest)){
       isEnhanced = true;
       const parts = rest.split(/(?=<\d+:\d{2}(?:\.\d+)?>)/);
@@ -1232,7 +1279,8 @@ function parseLrcText(text){
         if(!pm) continue;
         const t = parseTimeTag(pm[1]);
         const txt = pm[2].trim();
-        if(txt) words.push({text:txt, t});
+        if(txt) words.push({text:txt,t});
+        else if(t != null) lineEnd = t;
       }
     } else {
       const txt = rest.trim();
@@ -1242,8 +1290,10 @@ function parseLrcText(text){
         });
       }
     }
-    if(words.length) out.push({words});
+    if(words.length) out.push({words,...(lineEnd != null ? {endT:lineEnd} : {})});
   }
+  // O timestamp sem texto encerra somente a ultima frase da musica.
+  out.slice(0,-1).forEach(line=>{ delete line.endT; });
   return {lines: out, enhanced: isEnhanced};
 }
 
@@ -1252,6 +1302,7 @@ function exportEnhancedLrc(){
   // work on a deep clone shifted by offset so exported file matches what user hears
   const clone = lines.map(l=>({
     words:l.words.map(w=>({text:w.text,t:w.t})),
+    ...(l.endT != null ? {endT:l.endT} : {}),
     ...(l.breakAfter > 0 ? {
       breakAfter:l.breakAfter,
       ...(l.breakStart != null ? {breakStart:l.breakStart} : {})
@@ -1267,6 +1318,9 @@ function exportEnhancedLrc(){
     for(let i=1;i<line.words.length;i++){
       const t = Math.max(0, line.words[i].t + off);
       out += ` <${formatTime(t)}>${line.words[i].text}`;
+    }
+    if(line.endT != null){
+      out += ` <${formatTime(Math.max(0,line.endT+off))}>`;
     }
     out += '\n';
     if(line.breakAfter > 0){
@@ -1310,17 +1364,305 @@ $('#audioFile').addEventListener('change', (e)=>{
   const url = URL.createObjectURL(f);
   state.audioFile = f;
   state.audioObjectUrl = url;
+  state.projectAudioMeta = {name:f.name,size:f.size,duration:0};
   audio.src = url;
   $('#audioFileName').textContent = f.name;
   $('#tcName').textContent = f.name;
+  setProjectStatus('Áudio carregado: '+f.name,'ready');
   toast('Áudio carregado');
 });
 
 audio.addEventListener('loadedmetadata', ()=>{
   state.audioDuration = audio.duration || 0;
+  if(state.projectAudioMeta) state.projectAudioMeta.duration = state.audioDuration;
   $('#seekRange').max = state.audioDuration || 0;
   $('#durTime').textContent = formatTime(state.audioDuration);
   setSyncSpeed(state.syncSpeed);
+});
+
+/* ============================================================
+   PROJECT SAVE / LOAD
+============================================================ */
+const PROJECT_FORMAT = 'karaoke-studio-project';
+const PROJECT_VERSION = 1;
+
+function setProjectStatus(message,tone=''){
+  const el = $('#projectStatus');
+  el.textContent = message;
+  el.classList.toggle('ready',tone === 'ready');
+  el.classList.toggle('warn',tone === 'warn');
+}
+
+function projectAudioMetadata(){
+  if(state.audioFile){
+    return {
+      name:state.audioFile.name || null,
+      size:Number(state.audioFile.size) || 0,
+      duration:Number(state.audioDuration) || 0
+    };
+  }
+  return state.projectAudioMeta ? {...state.projectAudioMeta} : null;
+}
+
+function buildProjectFile(){
+  return {
+    format:PROJECT_FORMAT,
+    version:PROJECT_VERSION,
+    savedAt:new Date().toISOString(),
+    audio:projectAudioMetadata(),
+    lines:state.lines.map(line=>({
+      words:line.words.map(word=>({text:word.text,t:word.t == null ? null : Number(word.t)})),
+      ...(line.endT != null ? {endT:Number(line.endT)} : {}),
+      ...(line.breakAfter > 0 ? {breakAfter:Number(line.breakAfter)} : {}),
+      ...(line.breakStart != null ? {breakStart:Number(line.breakStart)} : {})
+    })),
+    settings:{
+      syncMode:state.syncMode,
+      reactionMs:state.reactionMs,
+      syncSpeed:state.syncSpeed,
+      offset:state.offset,
+      style:{...state.style},
+      background:{c1:state.bg.c1,c2:state.bg.c2,dim:state.bg.dim,image:state.bg.image || null},
+      countdown:{
+        enabled:state.countdown.enabled,
+        style:state.countdown.style,
+        position:state.countdown.position,
+        color:state.countdown.color,
+        items:state.countdown.items.map(item=>({...item}))
+      },
+      exportOptions:{...state.exportOptions}
+    }
+  };
+}
+
+function safeProjectName(){
+  const original = projectAudioMetadata()?.name || 'projeto-karaoke';
+  const base = original.replace(/\.[^.]+$/,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64) || 'projeto-karaoke';
+  return base+'-karaoke-project.json';
+}
+
+function downloadProject(){
+  const content = JSON.stringify(buildProjectFile(),null,2);
+  const blob = new Blob([content],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = safeProjectName();
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+  setProjectStatus('Projeto salvo. Guarde o JSON junto do arquivo de áudio.','ready');
+  toast('💾 Projeto salvo');
+}
+
+function finiteOrNull(value){
+  if(value == null || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0,number) : null;
+}
+
+function normalizeProjectLines(lines){
+  if(!Array.isArray(lines)) throw new Error('O projeto não contém uma letra válida.');
+  const normalized = lines.map(line=>{
+    if(!line || !Array.isArray(line.words)) return null;
+    const words = line.words.map(word=>({
+      text:String(word?.text ?? '').trim(),
+      t:finiteOrNull(word?.t)
+    })).filter(word=>word.text);
+    if(!words.length) return null;
+    const result = {words};
+    const endT = finiteOrNull(line.endT);
+    const breakAfter = finiteOrNull(line.breakAfter);
+    const breakStart = finiteOrNull(line.breakStart);
+    if(endT != null) result.endT = endT;
+    if(breakAfter != null && breakAfter > 0) result.breakAfter = breakAfter;
+    if(breakStart != null) result.breakStart = breakStart;
+    return result;
+  }).filter(Boolean);
+  if(lines.length && !normalized.length) throw new Error('Não foi possível recuperar as frases do projeto.');
+  return normalized;
+}
+
+function validColor(value,fallback){
+  return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : fallback;
+}
+
+function oneOf(value,allowed,fallback){
+  return allowed.includes(value) ? value : fallback;
+}
+
+function applyProjectFile(project){
+  if(!project || project.format !== PROJECT_FORMAT) throw new Error('Este arquivo não é um projeto do Karaoke Studio.');
+  if(Number(project.version) > PROJECT_VERSION) throw new Error('O projeto foi criado por uma versão mais nova do estúdio.');
+  const settings = project.settings || {};
+  const incomingStyle = settings.style || {};
+  const availableFonts = Array.from($('#fontSelect').options).map(option=>option.value);
+
+  state.lines = normalizeProjectLines(project.lines);
+  state.syncMode = oneOf(settings.syncMode,['word','line'],'word');
+  state.reactionMs = clamp(Math.round(Number(settings.reactionMs) || 120),0,300);
+  state.syncSpeed = clamp(Number(settings.syncSpeed) || 1,.5,1.5);
+  state.offset = clamp(Number(settings.offset) || 0,-30,30);
+  Object.assign(state.style,{
+    font:oneOf(incomingStyle.font,availableFonts,state.style.font),
+    fontSize:clamp(Math.round(Number(incomingStyle.fontSize) || 54),24,96),
+    align:oneOf(incomingStyle.align,['center','left'],'center'),
+    colorBase:validColor(incomingStyle.colorBase,state.style.colorBase),
+    colorFill:validColor(incomingStyle.colorFill,state.style.colorFill),
+    colorGlow:validColor(incomingStyle.colorGlow,state.style.colorGlow),
+    fillMode:oneOf(incomingStyle.fillMode,['sweep','neon'],'sweep'),
+    motion:oneOf(incomingStyle.motion,['bounce','pulse','wave','none'],'bounce'),
+    textEffect:oneOf(incomingStyle.textEffect,['original','neon','shadow','outline'],'original'),
+    glowStrength:clamp(Math.round(Number(incomingStyle.glowStrength) || 0),0,100),
+    lineGap:clamp(Number(incomingStyle.lineGap) || 1.45,.7,2.2),
+    phraseCount:clamp(Math.round(Number(incomingStyle.phraseCount) || 3),1,7),
+    phraseTransitionEnabled:incomingStyle.phraseTransitionEnabled !== false,
+    phraseTransition:oneOf(incomingStyle.phraseTransition,['fade','slide','zoom','reveal'],'fade'),
+    phraseTransitionDuration:clamp(Number(incomingStyle.phraseTransitionDuration) || .5,.2,1.2),
+    glowSpark:incomingStyle.glowSpark !== false,
+    bounceWords:incomingStyle.bounceWords !== false
+  });
+
+  const background = settings.background || {};
+  state.bg.c1 = validColor(background.c1,state.bg.c1);
+  state.bg.c2 = validColor(background.c2,state.bg.c2);
+  state.bg.dim = clamp(Math.round(Number(background.dim) || 0),0,90);
+  state.bg.image = typeof background.image === 'string' && background.image.startsWith('data:image/') ? background.image : null;
+  state.bg.imageEl = null;
+
+  const countdown = settings.countdown || {};
+  const items = Array.isArray(countdown.items) ? countdown.items : [];
+  state.countdown.enabled = countdown.enabled === true;
+  state.countdown.style = oneOf(countdown.style,['numbers','circle'],'numbers');
+  state.countdown.position = oneOf(countdown.position,['top-right','top-left','center','bottom-right','bottom-left'],'top-right');
+  state.countdown.color = validColor(countdown.color,state.countdown.color);
+  state.countdown.items = items.map((item,index)=>({
+    id:index+1,
+    start:Math.max(0,Number(item?.start) || 0),
+    duration:clampCountdownDuration(item?.duration)
+  }));
+  countdownSequence = state.countdown.items.length;
+
+  const exportOptions = settings.exportOptions || {};
+  state.exportOptions.resolution = oneOf(exportOptions.resolution,['1080p','4k'],'1080p');
+  state.exportOptions.fps = Number(exportOptions.fps) === 60 ? 60 : 30;
+  state.projectAudioMeta = project.audio && typeof project.audio === 'object' ? {
+    name:project.audio.name ? String(project.audio.name) : null,
+    size:Number(project.audio.size) || 0,
+    duration:Number(project.audio.duration) || 0
+  } : null;
+
+  state.syncing = false;
+  state.syncQueue = [];
+  state.syncCursor = 0;
+  state.syncHistory = [];
+  state.lastActiveLine = -1;
+  state.bounced.clear();
+  audio.pause();
+
+  lyricsInput.value = lyricsTextFromLines(state.lines);
+  $$('#syncModeSeg button').forEach(button=>button.classList.toggle('active',button.dataset.mode === state.syncMode));
+  $('#syncModeHint').textContent = state.syncMode === 'word'
+    ? 'Marque o início de cada palavra. Depois da última palavra da música, aperte mais uma vez quando ela realmente terminar.'
+    : 'Marque o início de cada linha e, no fim da música, marque quando a última palavra terminar.';
+  $('#reactionOffset').value = state.reactionMs;
+  $('#reactionVal').textContent = state.reactionMs+' ms';
+  setSyncSpeed(state.syncSpeed);
+  refreshOffsetLabel();
+
+  $('#fontSelect').value = state.style.font;
+  document.documentElement.style.setProperty('--stage-font',state.style.font);
+  refreshFontGallery();
+  $('#fontSize').value = state.style.fontSize;
+  $('#fontSizeVal').textContent = state.style.fontSize+'px';
+  $$('#alignSeg button').forEach(button=>button.classList.toggle('active',button.dataset.align === state.style.align));
+  $('#lyricBlock').classList.toggle('align-left',state.style.align === 'left');
+  $('#colorBase').value = state.style.colorBase;
+  $('#colorFill').value = state.style.colorFill;
+  $('#colorGlow').value = state.style.colorGlow;
+  document.documentElement.style.setProperty('--stage-base',state.style.colorBase);
+  document.documentElement.style.setProperty('--stage-fill',state.style.colorFill);
+  document.documentElement.style.setProperty('--stage-glow',state.style.colorGlow);
+  $$('#fillModeSeg button').forEach(button=>button.classList.toggle('active',button.dataset.fill === state.style.fillMode));
+  $('#motionSelect').value = state.style.motion;
+  $('#textEffectSelect').value = state.style.textEffect;
+  $('#glowStrength').value = state.style.glowStrength;
+  $('#glowStrengthVal').textContent = state.style.glowStrength+'%';
+  $('#lineGap').value = Math.round(state.style.lineGap*100);
+  $('#lineGapVal').textContent = state.style.lineGap.toFixed(2)+'×';
+  $('#phraseCount').value = state.style.phraseCount;
+  $('#phraseCountVal').textContent = state.style.phraseCount+(state.style.phraseCount === 1 ? ' frase' : ' frases');
+  $('#phraseTransitionEnabled').checked = state.style.phraseTransitionEnabled;
+  $('#phraseTransitionSelect').value = state.style.phraseTransition;
+  $('#phraseTransitionDuration').value = Math.round(state.style.phraseTransitionDuration*100);
+  $('#phraseTransitionDurationVal').textContent = state.style.phraseTransitionDuration.toFixed(2)+'s';
+  $('#glowSpark').checked = state.style.glowSpark;
+  $('#bounceWords').checked = state.style.bounceWords;
+  refreshPhraseTransitionUI();
+
+  $('#bgColor1').value = state.bg.c1;
+  $('#bgColor2').value = state.bg.c2;
+  $('#dimRange').value = state.bg.dim;
+  $('#dimVal').textContent = state.bg.dim+'%';
+  $('#bgImageName').textContent = state.bg.image ? 'Imagem recuperada do projeto' : 'Nenhuma imagem';
+  if(state.bg.image){
+    const image = new Image();
+    image.onload = ()=>{ state.bg.imageEl = image; renderStageStatic(); };
+    image.src = state.bg.image;
+  }
+  applyStageBg();
+
+  $('#countdownEnabled').checked = state.countdown.enabled;
+  $$('#countdownStyleSeg button').forEach(button=>button.classList.toggle('active',button.dataset.style === state.countdown.style));
+  $('#countdownPosition').value = state.countdown.position;
+  $('#countdownColor').value = state.countdown.color;
+  renderCountdownList();
+  refreshCountdownPreview();
+  refreshExportSummary();
+  renderReviewList();
+  renderSyncPreview();
+  renderStageStatic();
+
+  const expectedAudio = state.projectAudioMeta?.name;
+  const loadedAudio = state.audioFile?.name;
+  if(expectedAudio && loadedAudio === expectedAudio){
+    setProjectStatus('Projeto aberto e áudio correto já carregado: '+expectedAudio,'ready');
+  }else if(expectedAudio){
+    setProjectStatus('Projeto aberto. Agora carregue novamente o áudio: '+expectedAudio,'warn');
+  }else{
+    setProjectStatus('Projeto aberto. Selecione o áudio para continuar.','ready');
+  }
+}
+
+$('#saveProjectBtn').addEventListener('click',downloadProject);
+$('#projectFile').addEventListener('change',event=>{
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 50*1024*1024){
+    setProjectStatus('Esse projeto é maior que 50 MB e não pôde ser aberto.','warn');
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const project = JSON.parse(String(reader.result || ''));
+      const hasTimedWork = state.lines.some(line=>line.words.some(word=>word.t != null));
+      if(hasTimedWork && !window.confirm('Abrir este projeto substituirá a letra e a sincronização atuais. Continuar?')) return;
+      applyProjectFile(project);
+      toast('📂 Projeto restaurado');
+    }catch(error){
+      setProjectStatus(error.message || 'Não foi possível abrir o projeto.','warn');
+      toast('Projeto inválido');
+    }finally{
+      event.target.value = '';
+    }
+  };
+  reader.onerror = ()=>{
+    setProjectStatus('Não foi possível ler o arquivo selecionado.','warn');
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 });
 
 /* ============================================================
@@ -1387,8 +1729,8 @@ $('#syncModeSeg').addEventListener('click', (e)=>{
   btn.classList.add('active');
   state.syncMode = btn.dataset.mode;
   $('#syncModeHint').textContent = state.syncMode==='word'
-    ? 'Mais preciso: aperte no exato instante em que cada palavra começa a ser cantada.'
-    : 'Mais rápido: aperte no início de cada linha. As palavras dentro da linha são distribuídas automaticamente.';
+    ? 'Marque o início de cada palavra. Depois da última palavra da música, aperte mais uma vez quando ela realmente terminar.'
+    : 'Marque o início de cada linha e, no fim da música, marque quando a última palavra terminar.';
 });
 
 $('#reactionOffset').addEventListener('input', (e)=>{
@@ -1423,13 +1765,15 @@ function buildSyncQueue(){
   const q = [];
   if(state.syncMode === 'word'){
     state.lines.forEach((line,li)=>{
-      line.words.forEach((w,wi)=> q.push({li,wi}));
+      line.words.forEach((w,wi)=> q.push({type:'word',li,wi}));
     });
   } else {
     state.lines.forEach((line,li)=>{
-      if(line.words.length) q.push({li, wi:0});
+      if(line.words.length) q.push({type:'word',li,wi:0});
     });
   }
+  const lastLi = state.lines.length-1;
+  if(lastLi >= 0 && state.lines[lastLi].words.length) q.push({type:'song-end',li:lastLi});
   return q;
 }
 
@@ -1440,7 +1784,10 @@ function startSync(){
   }
   // reset times for queue targets
   state.syncQueue = buildSyncQueue();
-  state.syncQueue.forEach(({li,wi})=>{ state.lines[li].words[wi].t = null; });
+  state.lines.forEach(line=>{ line.endT = null; });
+  state.syncQueue.forEach(target=>{
+    if(target.type === 'word') state.lines[target.li].words[target.wi].t = null;
+  });
   // for line-mode, also null out the rest of each line's words so fillGaps recomputes them
   if(state.syncMode==='line'){
     state.lines.forEach(line=>line.words.forEach(w=>w.t=null));
@@ -1475,8 +1822,16 @@ function tapMark(){
   if(!state.syncing) return;
   if(state.syncCursor >= state.syncQueue.length) return;
   const target = state.syncQueue[state.syncCursor];
-  const t = Math.max(0, audio.currentTime - (state.reactionMs/1000)*state.syncSpeed);
-  state.lines[target.li].words[target.wi].t = t;
+  let t = Math.max(0,audio.currentTime-(state.reactionMs/1000)*state.syncSpeed);
+  if(target.type === 'song-end'){
+    const line = state.lines[target.li];
+    const lastStart = line.words[line.words.length-1]?.t;
+    if(lastStart != null) t = Math.max(lastStart+.01,t);
+    line.endT = t;
+    if(line.breakAfter > 0) line.breakStart = t;
+  }else{
+    state.lines[target.li].words[target.wi].t = t;
+  }
   state.syncHistory.push(target);
   state.syncCursor++;
   renderSyncPreview();
@@ -1489,13 +1844,17 @@ function undoTap(){
   if(!state.syncing || state.syncCursor===0) return;
   state.syncCursor--;
   const target = state.syncQueue[state.syncCursor];
-  state.lines[target.li].words[target.wi].t = null;
+  if(target.type === 'song-end') state.lines[target.li].endT = null;
+  else state.lines[target.li].words[target.wi].t = null;
   state.syncHistory.pop();
   renderSyncPreview();
 }
 
 function clearAllTimes(){
-  state.lines.forEach(line=>line.words.forEach(w=>w.t=null));
+  state.lines.forEach(line=>{
+    line.words.forEach(w=>w.t=null);
+    line.endT = null;
+  });
   renderReviewList();
   renderStageStatic();
   toast('Tempos removidos');
@@ -1526,7 +1885,7 @@ function renderSyncPreview(){
   const total = state.syncQueue.length;
   const done = state.syncCursor;
   $('#syncCount').innerHTML = total
-    ? `<b>${done}</b> / ${total} marcados`
+    ? `<b>${done}</b> / ${total} etapas marcadas`
     : 'Nenhuma sincronização iniciada.';
 
   if(!state.syncing && !total){
@@ -1546,14 +1905,22 @@ function renderSyncPreview(){
       const cls = isNow ? 'now' : (isDone ? 'done' : '');
       return `<span class="${cls}">${escapeHtml(w.text)}</span>`;
     });
-    html += `<div>${parts.join(' ')}</div>`;
+    const isLastLine = li === state.lines.length-1;
+    const endNow = cur?.type === 'song-end' && cur.li === li;
+    const endDone = isLastLine && line.endT != null;
+    const endLabel = endNow ? 'FINALIZAR MÚSICA' : (endDone ? 'FIM '+formatTime(line.endT) : 'FIM');
+    const endMarker = isLastLine ? `<span class="sync-end-marker${endNow?' now':''}">${endLabel}</span>` : '';
+    html += `<div>${parts.join(' ')}${endMarker}</div>`;
     if(line.breakAfter > 0){
       html += `<div class="break-marker">${formatBreakMarker(line.breakAfter,line.breakStart)} · pausa instrumental</div>`;
     }
   });
   $('#syncPreview').innerHTML = html || '—';
   if(cur){
-    $('#syncBarWord').textContent = state.lines[cur.li].words[cur.wi].text;
+    $('#syncBarWord').textContent = cur.type === 'song-end'
+      ? 'Marque quando a última palavra terminar'
+      : state.lines[cur.li].words[cur.wi].text;
+    $('#tapBtn').textContent = cur.type === 'song-end' ? '✓ Finalizar música' : '🥁 Marcar palavra';
   }
 }
 
@@ -1592,6 +1959,7 @@ function renderReviewList(){
       <div class="review-row-top">
         <button class="seek" data-li="${li}">${t0!=null?formatTime(t0):'--:--'}</button>
         <span class="txt">${escapeHtml(text)}</span>
+        ${line.endT != null ? `<span class="sync-end-marker" title="Fim exato da música">fim ${formatTime(line.endT)}</span>` : ''}
         ${!(line.breakAfter > 0) && li < state.lines.length-1 ? `<button class="add-break" data-li="${li}" title="Adicionar pausa instrumental">§</button>` : ''}
         <button class="edit-toggle" data-li="${li}">✎</button>
       </div>
@@ -1635,8 +2003,12 @@ function renderReviewList(){
       const line = state.lines[li];
       const lastWord = line.words[line.words.length-1];
       const nextStart = state.lines[li+1]?.words[0]?.t;
-      if(lastWord?.t != null && nextStart != null){
+      if(line.endT != null && nextStart != null){
+        line.breakStart = Math.min(nextStart,line.endT);
+        line.breakAfter = Math.max(.01,nextStart-line.breakStart);
+      }else if(lastWord?.t != null && nextStart != null){
         line.breakStart = Math.min(nextStart,Math.max(lastWord.t+.08,nextStart-.5));
+        line.endT = line.breakStart;
         line.breakAfter = Math.max(.01,nextStart-line.breakStart);
       }else{
         line.breakAfter = 5;
@@ -1657,6 +2029,7 @@ function renderReviewList(){
       const parsed = parseMarkerTime(startInput.value);
       if(parsed == null){ toast('Use um tempo como 00:00.90'); renderReviewList(); return; }
       line.breakStart = lastWord?.t != null ? Math.max(lastWord.t+.01,parsed) : Math.max(0,parsed);
+      line.endT = line.breakStart;
       alignBreakToNextLine(state.lines,li);
       syncLyricsTextarea();
       renderReviewList();
@@ -1713,17 +2086,65 @@ function renderWordEdit(li, wrap){
     });
     wrap.appendChild(cell);
   });
+  if(li === state.lines.length-1){
+    const endCell = document.createElement('div');
+    endCell.className = 'we';
+    endCell.innerHTML = `
+      <span title="Fim exato da última palavra da música">Fim da música</span>
+      <input class="timecode-input" value="${state.lines[li].endT!=null?formatTime(state.lines[li].endT):''}" placeholder="mm:ss.xx">
+    `;
+    endCell.querySelector('input').addEventListener('change',e=>{
+      const line = state.lines[li];
+      const lastStart = line.words[line.words.length-1]?.t;
+      const parsed = parseTimeInputFlexible(e.target.value);
+      line.endT = parsed == null ? null : Math.max(lastStart != null ? lastStart+.01 : 0,parsed);
+      renderReviewList();
+      renderStageStatic();
+    });
+    wrap.appendChild(endCell);
+  }
 }
 
 /* ============================================================
    STYLE CONTROLS
 ============================================================ */
-$('#fontSelect').addEventListener('change', e=>{
-  state.style.font = e.target.value;
-  document.documentElement.style.setProperty('--stage-font', e.target.value);
+function refreshFontGallery(){
+  $$('#fontGallery .font-card').forEach(card=>{
+    const selected = card.dataset.font === state.style.font;
+    card.classList.toggle('active',selected);
+    card.setAttribute('aria-pressed',String(selected));
+  });
+}
+
+function applyStageFont(value){
+  state.style.font = value;
+  $('#fontSelect').value = value;
+  document.documentElement.style.setProperty('--stage-font',value);
+  refreshFontGallery();
   renderStageStatic();
+}
+
+function buildFontGallery(){
+  const gallery = $('#fontGallery');
+  gallery.innerHTML = Array.from($('#fontSelect').options).map(option=>`
+    <button type="button" class="font-card" data-font="${option.value}" aria-pressed="false">
+      <span class="font-card-sample" style="font-family:${option.value}">Cante comigo</span>
+      <span class="font-card-name">${option.textContent}</span>
+    </button>
+  `).join('');
+  refreshFontGallery();
+}
+
+$('#fontSelect').addEventListener('change', e=>{
+  applyStageFont(e.target.value);
+});
+$('#fontGallery').addEventListener('click',e=>{
+  const card = e.target.closest('.font-card[data-font]');
+  if(card) applyStageFont(card.dataset.font);
 });
 document.documentElement.style.setProperty('--stage-font', state.style.font);
+buildFontGallery();
+if(document.fonts?.ready) document.fonts.ready.then(()=>renderStageStatic());
 
 $('#fontSize').addEventListener('input', e=>{
   state.style.fontSize = parseInt(e.target.value,10);
@@ -1835,11 +2256,50 @@ $('#clearBgImage').addEventListener('click', ()=>{ state.bg.image=null; state.bg
 applyStageBg();
 
 /* Countdown sticker */
+let countdownSequence = Math.max(0,...state.countdown.items.map(item=>item.id));
+
+function clampCountdownDuration(value){
+  return Math.min(120,Math.max(.5,Number(value) || 5));
+}
+
+function countdownDurationLabel(value){
+  const seconds = clampCountdownDuration(value);
+  if(seconds < 60) return seconds.toFixed(1)+'s';
+  const minutes = Math.floor(seconds/60);
+  const remainder = seconds-minutes*60;
+  return minutes+':'+remainder.toFixed(1).padStart(4,'0');
+}
+
+function renderCountdownList(){
+  const list = $('#countdownList');
+  if(!state.countdown.items.length){
+    list.innerHTML = '<div class="countdown-empty">Nenhuma contagem adicionada.</div>';
+    return;
+  }
+  list.innerHTML = state.countdown.items.map((item,index)=>`
+    <div class="countdown-item" data-countdown-id="${item.id}">
+      <div class="countdown-item-head">
+        <span class="countdown-item-title">Contagem ${index+1}</span>
+        <button class="btn btn-ghost btn-sm" data-countdown-action="remove" title="Remover esta contagem">Remover</button>
+      </div>
+      <div class="field">
+        <div class="field-label">Começar no tempo</div>
+        <div class="countdown-item-grid">
+          <input class="compact-input" type="number" data-countdown-field="start" min="0" step="0.1" value="${item.start}" aria-label="Tempo de início da contagem ${index+1} em segundos">
+          <button class="btn btn-ghost btn-sm" data-countdown-action="current">⏱ Atual</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Duração <span class="val">${countdownDurationLabel(item.duration)}</span></div>
+        <input type="range" data-countdown-field="duration" min="0.5" max="120" step="0.1" value="${item.duration}">
+      </div>
+    </div>
+  `).join('');
+}
+
 function refreshCountdownPreview(){
   state.countdown.enabled = $('#countdownEnabled').checked;
   state.countdown.style = $('#countdownStyleSeg button.active')?.dataset.style || 'numbers';
-  state.countdown.duration = Math.max(.5,parseFloat($('#countdownDuration').value) || 5);
-  state.countdown.start = Math.max(0,parseFloat($('#countdownStart').value) || 0);
   state.countdown.position = $('#countdownPosition').value;
   state.countdown.color = $('#countdownColor').value;
   $('#countdownSettings').classList.toggle('is-disabled',!state.countdown.enabled);
@@ -1857,20 +2317,45 @@ $('#countdownStyleSeg').addEventListener('click',e=>{
   state.countdown.style = button.dataset.style;
   refreshCountdownPreview();
 });
-$('#countdownDuration').addEventListener('input',e=>{
-  state.countdown.duration = Math.max(.5,parseFloat(e.target.value) || 5);
-  $('#countdownDurationVal').textContent = state.countdown.duration.toFixed(1)+'s';
+$('#addCountdown').addEventListener('click',()=>{
+  const start = +(audio.currentTime || 0).toFixed(2);
+  state.countdown.items.push({id:++countdownSequence,start,duration:5});
+  renderCountdownList();
   refreshCountdownPreview();
 });
-$('#countdownStart').addEventListener('input',e=>{
-  state.countdown.start = Math.max(0,parseFloat(e.target.value) || 0);
-  refreshCountdownPreview();
+$('#countdownList').addEventListener('input',e=>{
+  const field = e.target.dataset.countdownField;
+  if(!field) return;
+  const row = e.target.closest('[data-countdown-id]');
+  const item = state.countdown.items.find(entry=>entry.id === Number(row?.dataset.countdownId));
+  if(!item) return;
+  if(field === 'duration'){
+    item.duration = clampCountdownDuration(e.target.value);
+    row.querySelector('.field-label .val').textContent = countdownDurationLabel(item.duration);
+  }else if(field === 'start'){
+    item.start = Math.max(0,parseFloat(e.target.value) || 0);
+  }
+  renderStageStatic();
 });
-$('#countdownUseCurrent').addEventListener('click',()=>{
-  state.countdown.start = +(audio.currentTime || 0).toFixed(2);
-  $('#countdownStart').value = state.countdown.start;
-  refreshCountdownPreview();
-  toast('Início do sticker definido em '+formatTime(state.countdown.start));
+$('#countdownList').addEventListener('click',e=>{
+  const action = e.target.closest('[data-countdown-action]')?.dataset.countdownAction;
+  if(!action) return;
+  const row = e.target.closest('[data-countdown-id]');
+  const id = Number(row?.dataset.countdownId);
+  const index = state.countdown.items.findIndex(entry=>entry.id === id);
+  if(index < 0) return;
+  if(action === 'remove'){
+    state.countdown.items.splice(index,1);
+    renderCountdownList();
+    renderStageStatic();
+    return;
+  }
+  if(action === 'current'){
+    state.countdown.items[index].start = +(audio.currentTime || 0).toFixed(2);
+    renderCountdownList();
+    renderStageStatic();
+    toast('Início da contagem definido em '+formatTime(state.countdown.items[index].start));
+  }
 });
 function updateCountdownPosition(e){
   state.countdown.position = e.target.value;
@@ -1882,6 +2367,7 @@ $('#countdownColor').addEventListener('input',e=>{
   state.countdown.color = e.target.value;
   refreshCountdownPreview();
 });
+renderCountdownList();
 
 /* Offset */
 function refreshOffsetLabel(){ $('#offsetVal').textContent = (state.offset>=0?'+':'') + state.offset.toFixed(2) + 's'; }
@@ -1946,6 +2432,7 @@ function wordEnd(li, wi){
   const w = line.words[wi];
   if(w.t == null) return null;
   if(wi+1 < line.words.length && line.words[wi+1].t != null) return line.words[wi+1].t;
+  if(line.endT != null) return Math.max(w.t+.01,line.endT);
   const nextLine = state.lines[li+1];
   if(nextLine && nextLine.words[0] && nextLine.words[0].t != null){
     const nextStart = nextLine.words[0].t;
@@ -2173,6 +2660,19 @@ function smootherStep(value){
   return t*t*t*(t*(t*6-15)+10);
 }
 
+function phraseReleaseProgress(li,displayTime){
+  if(li !== state.lines.length-1) return 0;
+  const end = state.lines[li]?.endT;
+  if(end == null || displayTime < end) return 0;
+  return smootherStep((displayTime-end)/.34);
+}
+
+function releasedCenterPose(li,displayTime,fontSize){
+  const pose = phraseRolePose(0,fontSize);
+  const release = phraseReleaseProgress(li,displayTime);
+  return {...pose,y:pose.y+fontSize*.32*release};
+}
+
 function mix(from,to,progress){
   return from+(to-from)*progress;
 }
@@ -2242,18 +2742,61 @@ function interpolatePhrasePose(fromRole,toRole,progress,fontSize,direction){
   };
 }
 
-function phraseTransitionState(li,displayTime){
+function phraseTransitionPlan(li){
   if(!state.style.phraseTransitionEnabled || li < 0 || !state.lines[li+1]) return null;
   const currentStart = phraseStart(li);
   const nextStart = phraseStart(li+1);
   if(currentStart == null || nextStart == null || nextStart <= currentStart) return null;
 
   const requested = Math.max(.2,state.style.phraseTransitionDuration || .5);
-  // Em frases muito curtas, preserva mais da metade do tempo com B parado e legivel.
-  const duration = Math.min(requested,Math.max(.08,(nextStart-currentStart)*.46));
-  const transitionStart = nextStart-duration;
-  if(displayTime < transitionStart || displayTime >= nextStart) return null;
-  return {progress:clamp((displayTime-transitionStart)/duration,0,1)};
+  const words = state.lines[li].words;
+  const lastWordIndex = words.length-1;
+  const rawReadEnd = lastWordIndex >= 0 ? wordEnd(li,lastWordIndex) : null;
+  const readEnd = rawReadEnd == null
+    ? currentStart
+    : Math.min(nextStart,Math.max(currentStart,rawReadEnd));
+  const readabilityHold = .06;
+  const safeStart = readEnd+readabilityHold;
+  const availableBeforeNext = nextStart-safeStart;
+
+  // Quando existe espaco, a esteira termina exatamente no inicio da proxima
+  // frase, mas nunca comeca antes da ultima palavra chegar a 100%.
+  if(availableBeforeNext >= .08){
+    const duration = Math.min(
+      requested,
+      Math.max(.08,(nextStart-currentStart)*.46),
+      availableBeforeNext
+    );
+    return {mode:'before',start:nextStart-duration,motionStart:nextStart-duration,end:nextStart,duration};
+  }
+
+  // Se a palavra termina colada na proxima frase, a troca acontece depois da
+  // virada. A nova frase continua totalmente ativa durante o movimento.
+  const followingStart = phraseStart(li+2);
+  const incomingSpan = followingStart != null && followingStart > nextStart
+    ? followingStart-nextStart
+    : requested/.38;
+  const duration = Math.min(requested,Math.max(.08,incomingSpan*.38));
+  return {
+    mode:'after',
+    start:nextStart,
+    motionStart:nextStart+readabilityHold,
+    end:nextStart+readabilityHold+duration,
+    duration
+  };
+}
+
+function phraseTransitionState(li,displayTime){
+  const plan = phraseTransitionPlan(li);
+  if(!plan || plan.mode !== 'before' || displayTime < plan.start || displayTime >= plan.end) return null;
+  return {progress:clamp((displayTime-plan.motionStart)/plan.duration,0,1),plan};
+}
+
+function incomingPhraseTransitionState(li,displayTime){
+  if(li <= 0) return null;
+  const plan = phraseTransitionPlan(li-1);
+  if(!plan || plan.mode !== 'after' || displayTime < plan.start || displayTime >= plan.end) return null;
+  return {progress:clamp((displayTime-plan.motionStart)/plan.duration,0,1),plan};
 }
 
 function drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,pose,activeMix){
@@ -2340,8 +2883,9 @@ function drawInstrumentalBreak(ctx,li,displayTime,width,height,fontSize,info){
   const settle = smootherStep((displayTime-info.start)/settleDuration);
   if(displayTime < info.revealStart){
     const fadingTop = {...top,alpha:top.alpha*(1-settle)};
+    const settledCenter = {...center,y:center.y+fontSize*.18*settle};
     drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,fadingTop,0);
-    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,center,1-settle);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,settledCenter,1-settle);
     return;
   }
 
@@ -2381,6 +2925,41 @@ function drawInstrumentalBreak(ctx,li,displayTime,width,height,fontSize,info){
   }
 }
 
+function drawIncomingPhraseTransition(ctx,li,displayTime,width,height,fontSize,transition){
+  const outgoingLi = li-1;
+  const p = transition.progress;
+  const mainEase = smootherStep(p);
+  const exitProgress = clamp(p/.9,0,1);
+  const entryProgress = clamp((p-.06)/.94,0,1);
+  const outgoingPose = interpolatePhrasePose(0,-1,p,fontSize,-1);
+  const incomingPose = interpolatePhrasePose(1,0,p,fontSize,1);
+
+  if(visiblePhraseCount() >= 2){
+    const oldTopPose = interpolatePhrasePose(-1,-2,exitProgress,fontSize,-1);
+    drawPhraseAtPose(ctx,outgoingLi-1,displayTime,width,height,fontSize,oldTopPose,0);
+  }
+
+  const futureCount = visibleFutureCount();
+  if(!(state.lines[li]?.breakAfter > 0)){
+    for(let sourceRole=futureCount+1;sourceRole>=2;sourceRole--){
+      const lineIndex = outgoingLi+sourceRole;
+      const progress = sourceRole === futureCount+1 ? entryProgress : p;
+      const pose = interpolatePhrasePose(sourceRole,sourceRole-1,progress,fontSize,1);
+      drawPhraseAtPose(ctx,lineIndex,displayTime,width,height,fontSize,pose,0);
+    }
+  }
+
+  // A frase nova ja esta sendo cantada: permanece 100% ativa e legivel
+  // enquanto sobe de C para B. Nao ha crossfade sobre a leitura das palavras.
+  if(mainEase < .5){
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,incomingPose,1);
+    drawPhraseAtPose(ctx,outgoingLi,displayTime,width,height,fontSize,outgoingPose,0);
+  }else{
+    drawPhraseAtPose(ctx,outgoingLi,displayTime,width,height,fontSize,outgoingPose,0);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,incomingPose,1);
+  }
+}
+
 function drawPhraseStack(ctx,li,displayTime,width,height,fontSize){
   const breakInfo = instrumentalBreakInfo(li);
   if(breakInfo && displayTime < breakInfo.end){
@@ -2388,15 +2967,22 @@ function drawPhraseStack(ctx,li,displayTime,width,height,fontSize){
     return;
   }
 
+  const incomingTransition = incomingPhraseTransitionState(li,displayTime);
+  if(incomingTransition){
+    drawIncomingPhraseTransition(ctx,li,displayTime,width,height,fontSize,incomingTransition);
+    return;
+  }
+
   const transition = phraseTransitionState(li,displayTime);
   if(!transition){
+    const release = phraseReleaseProgress(li,displayTime);
     if(visiblePhraseCount() >= 2){
       drawPhraseAtPose(ctx,li-1,displayTime,width,height,fontSize,phraseRolePose(-1,fontSize),0);
     }
     for(let role=visibleFutureCount();role>=1;role--){
       drawPhraseAtPose(ctx,li+role,displayTime,width,height,fontSize,phraseRolePose(role,fontSize),0);
     }
-    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,phraseRolePose(0,fontSize),1);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,releasedCenterPose(li,displayTime,fontSize),1-release);
     return;
   }
 
@@ -2406,6 +2992,8 @@ function drawPhraseStack(ctx,li,displayTime,width,height,fontSize){
   const entryProgress = clamp((p-.06)/.94,0,1);
   const bPose = interpolatePhrasePose(0,-1,p,fontSize,-1);
   const cPose = interpolatePhrasePose(1,0,p,fontSize,1);
+  const release = phraseReleaseProgress(li,displayTime);
+  bPose.y += fontSize*.32*release*(1-mainEase);
 
   // A sai por cima. C, D, E... sobem simultaneamente e uma nova ultima frase
   // entra por baixo, qualquer que seja a quantidade configurada.
@@ -2424,9 +3012,9 @@ function drawPhraseStack(ctx,li,displayTime,width,height,fontSize){
   }
   if(mainEase < .5){
     drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
-    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,1-mainEase);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,(1-mainEase)*(1-release));
   }else{
-    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,1-mainEase);
+    drawPhraseAtPose(ctx,li,displayTime,width,height,fontSize,bPose,(1-mainEase)*(1-release));
     drawPhraseAtPose(ctx,li+1,displayTime,width,height,fontSize,cPose,mainEase);
   }
 }
@@ -2446,33 +3034,34 @@ function roundedRectPath(ctx,x,y,width,height,radius){
   ctx.closePath();
 }
 
-function countdownCenter(width,height,radius){
+function countdownCenter(width,height,radius,stackIndex=0,stackTotal=1){
   const marginX = radius*1.55;
   const marginY = radius*1.55;
+  const spacing = radius*1.9;
+  const centeredOffset = (stackIndex-(stackTotal-1)/2)*spacing;
   switch(state.countdown.position){
-    case 'top-left': return {x:marginX,y:marginY};
-    case 'bottom-left': return {x:marginX,y:height-marginY};
-    case 'bottom-right': return {x:width-marginX,y:height-marginY};
-    case 'center': return {x:width/2,y:height/2};
-    default: return {x:width-marginX,y:marginY};
+    case 'top-left': return {x:marginX,y:marginY+stackIndex*spacing};
+    case 'bottom-left': return {x:marginX,y:height-marginY-stackIndex*spacing};
+    case 'bottom-right': return {x:width-marginX,y:height-marginY-stackIndex*spacing};
+    case 'center': return {x:width/2,y:height/2+centeredOffset};
+    default: return {x:width-marginX,y:marginY+stackIndex*spacing};
   }
 }
 
-function drawCountdownSticker(ctx,width,height,mediaTime){
+function drawCountdownItem(ctx,width,height,mediaTime,item,stackIndex,stackTotal){
   const sticker = state.countdown;
-  if(!sticker.enabled) return;
-  const elapsed = mediaTime-sticker.start;
-  if(elapsed < 0 || elapsed >= sticker.duration) return;
+  const elapsed = mediaTime-item.start;
+  if(elapsed < 0 || elapsed >= item.duration) return;
 
-  const remaining = Math.max(1,Math.ceil(sticker.duration-elapsed));
+  const remaining = Math.max(1,Math.ceil(item.duration-elapsed));
   const radius = Math.min(width,height)*.078;
-  const center = countdownCenter(width,height,radius);
+  const center = countdownCenter(width,height,radius,stackIndex,stackTotal);
   const withinSecond = elapsed-Math.floor(elapsed);
   const popPhase = Math.min(1,withinSecond/.22);
   const pop = sticker.style === 'numbers' && withinSecond < .22
     ? 1+Math.sin(Math.PI*popPhase)*.09
     : 1;
-  const remainingProgress = 1-elapsed/sticker.duration;
+  const remainingProgress = 1-elapsed/item.duration;
 
   ctx.save();
   ctx.translate(center.x,center.y);
@@ -2513,6 +3102,18 @@ function drawCountdownSticker(ctx,width,height,mediaTime){
     ctx.fillText(String(remaining),0,radius*.035);
   }
   ctx.restore();
+}
+
+function drawCountdownSticker(ctx,width,height,mediaTime){
+  const sticker = state.countdown;
+  if(!sticker.enabled || !sticker.items.length) return;
+  const visible = sticker.items.filter(item=>{
+    const elapsed = mediaTime-item.start;
+    if(elapsed < 0 || elapsed >= item.duration) return false;
+    const remaining = item.duration-elapsed;
+    return sticker.style === 'circle' || remaining <= 60;
+  });
+  visible.forEach((item,index)=>drawCountdownItem(ctx,width,height,mediaTime,item,index,visible.length));
 }
 
 function drawCanvasFrame(canvas, ctx, mediaTime){
